@@ -1,359 +1,275 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-US">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MCAS Tracker</title>
-  <!-- Tailwind CSS CDN for styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Inter font for a clean look -->
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1, viewport-fit=cover" name="viewport">
+  <meta content="light dark" name="color-scheme">
+  <meta content="#1e40af" name="theme-color">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Web App Manifest for PWA features -->
-  <link rel="manifest" href="/manifest.json">
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f3f4f6;
-      /* Light gray background */
-    }
-
-    /* Custom scrollbar for better aesthetics */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: #e0e0e0;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: #a0a0a0;
-      border-radius: 10px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: #808080;
-    }
-
-    .section-content {
-      max-height: calc(100vh - 120px);
-      /* Adjust based on header/footer height */
-      overflow-y: auto;
-    }
-
-    /* Hide sections by default, JavaScript will show the active one */
-    .page-section {
-      display: none;
-    }
-
-    .active-section {
-      display: block;
-    }
-  </style>
-  <script defer src="/main.js"></script>
+  <link href="/universal.css" rel="stylesheet">
+  <link href="/manifest.json" rel="manifest">
+  <title>Mast Cell Activation Syndrome (MCAS) Health & Routine Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer type="module">
+    const { readyState } = document;
+    if ('loading' === readyState) return;
+    const init = await import("/main.js");
+    await init?.default?.();
+  </script>
 </head>
 
-<body class="flex flex-col min-h-screen">
-  <header class="bg-blue-600 text-white p-4 shadow-md">
-    <h1 class="text-3xl font-bold text-center">MCAS Tracker</h1>
-  </header>
+<body role="document" class="flex flex-col min-h-screen">
+  <div role="application">
+    <main class="flex-grow p-4">
+      <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-6">
+        <nav class="mb-6 border-b border-gray-200">
+          <ul class="flex justify-around text-center">
+            <li>
+              <button id="nav-symptoms"
+                class="py-3 px-4 text-blue-600 border-b-2 border-blue-600 font-medium hover:text-blue-800 hover:border-blue-800 transition-colors duration-200 rounded-t-lg">Symptoms</button>
+            </li>
+            <li>
+              <button id="nav-diet"
+                class="py-3 px-4 text-gray-600 font-medium hover:text-blue-600 hover:border-blue-600 transition-colors duration-200 rounded-t-lg">Diet</button>
+            </li>
+            <li>
+              <button id="nav-mood"
+                class="py-3 px-4 text-gray-600 font-medium hover:text-blue-600 hover:border-blue-600 transition-colors duration-200 rounded-t-lg">Mood</button>
+            </li>
+            <li>
+              <button id="nav-sleep"
+                class="py-3 px-4 text-gray-600 font-medium hover:text-blue-600 hover:border-blue-600 transition-colors duration-200 rounded-t-lg">Sleep</button>
+            </li>
+            <li>
+              <button id="nav-reports"
+                class="py-3 px-4 text-gray-600 font-medium hover:text-blue-600 hover:border-blue-600 transition-colors duration-200 rounded-t-lg">Reports</button>
+            </li>
+          </ul>
+        </nav>
 
-  <main class="flex-grow p-4">
-    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-6">
-      <!-- Navigation Tabs -->
-      <nav class="mb-6 border-b border-gray-200">
-        <ul class="flex justify-around text-center">
-          <li>
-            <button id="nav-symptoms"
-              class="py-3 px-4 text-blue-600 border-b-2 border-blue-600 font-medium hover:text-blue-800 hover:border-blue-800 transition-colors duration-200 rounded-t-lg">Symptoms</button>
-          </li>
-          <li>
-            <button id="nav-diet"
-              class="py-3 px-4 text-gray-600 font-medium hover:text-blue-600 hover:border-blue-600 transition-colors duration-200 rounded-t-lg">Diet</button>
-          </li>
-          <li>
-            <button id="nav-mood"
-              class="py-3 px-4 text-gray-600 font-medium hover:text-blue-600 hover:border-blue-600 transition-colors duration-200 rounded-t-lg">Mood</button>
-          </li>
-          <li>
-            <button id="nav-sleep"
-              class="py-3 px-4 text-gray-600 font-medium hover:text-blue-600 hover:border-blue-600 transition-colors duration-200 rounded-t-lg">Sleep</button>
-          </li>
-          <li>
-            <button id="nav-reports"
-              class="py-3 px-4 text-gray-600 font-medium hover:text-blue-600 hover:border-blue-600 transition-colors duration-200 rounded-t-lg">Reports</button>
-          </li>
-        </ul>
-      </nav>
+        <section id="symptoms-section" class="page-section active-section section-content">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Log a Symptom</h2>
+          <form id="symptom-form" class="space-y-4">
+            <div>
+              <label for="symptom-type" class="block text-sm font-medium text-gray-700">Symptom Type:</label>
+              <input type="text" id="symptom-type" name="symptomType" placeholder="e.g., Hives, Fatigue, Brain Fog" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="symptom-severity" class="block text-sm font-medium text-gray-700">Severity (1-10):</label>
+                <input type="number" id="symptom-severity" name="severity" min="1" max="10" required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="symptom-timestamp" class="block text-sm font-medium text-gray-700">Date and Time:</label>
+                <input type="datetime-local" id="symptom-timestamp" name="timestamp" required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="symptom-duration" class="block text-sm font-medium text-gray-700">Duration (minutes):</label>
+                <input type="number" id="symptom-duration" name="durationMinutes" min="0"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="symptom-triggers" class="block text-sm font-medium text-gray-700">Potential Triggers
+                  (comma-separated):</label>
+                <input type="text" id="symptom-triggers" name="associatedTriggers" placeholder="e.g., Dairy, Stress, Heat"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="symptom-relief" class="block text-sm font-medium text-gray-700">Relief Measures:</label>
+                <textarea id="symptom-relief" name="reliefMeasures" rows="3" placeholder="e.g., Antihistamine, Rest"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+              </div>
+              <button type="submit"
+                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">Add
+                Symptom Log</button>
+              </form>
 
-      <!-- Symptoms Section -->
-      <section id="symptoms-section" class="page-section active-section section-content">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Log a Symptom</h2>
-        <form id="symptom-form" class="space-y-4">
-          <div>
-            <label for="symptom-type" class="block text-sm font-medium text-gray-700">Symptom Type:</label>
-            <input type="text" id="symptom-type" name="symptomType" placeholder="e.g., Hives, Fatigue, Brain Fog"
-              required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="symptom-severity" class="block text-sm font-medium text-gray-700">Severity (1-10):</label>
-            <input type="number" id="symptom-severity" name="severity" min="1" max="10" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="symptom-timestamp" class="block text-sm font-medium text-gray-700">Date and Time:</label>
-            <input type="datetime-local" id="symptom-timestamp" name="timestamp" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="symptom-duration" class="block text-sm font-medium text-gray-700">Duration (minutes):</label>
-            <input type="number" id="symptom-duration" name="durationMinutes" min="0"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="symptom-triggers" class="block text-sm font-medium text-gray-700">Potential Triggers
-              (comma-separated):</label>
-            <input type="text" id="symptom-triggers" name="associatedTriggers" placeholder="e.g., Dairy, Stress, Heat"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="symptom-relief" class="block text-sm font-medium text-gray-700">Relief Measures:</label>
-            <textarea id="symptom-relief" name="reliefMeasures" rows="3" placeholder="e.g., Antihistamine, Rest"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-          </div>
-          <button type="submit"
-            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">Add
-            Symptom Log</button>
-        </form>
+          <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Your Symptom Logs</h3>
+          <div id="symptom-logs-display" class="space-y-4">
+            <p class="text-gray-500 text-center">No symptom logs yet. Add one above!</p>
+            </div>
+            </section>
 
-        <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Your Symptom Logs</h3>
-        <div id="symptom-logs-display" class="space-y-4">
-          <!-- Symptom logs will be dynamically loaded here -->
-          <p class="text-gray-500 text-center">No symptom logs yet. Add one above!</p>
-        </div>
-      </section>
+        <section id="diet-section" class="page-section section-content">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Log Dietary Intake</h2>
+          <form id="diet-form" class="space-y-4">
+            <div>
+              <label for="diet-timestamp" class="block text-sm font-medium text-gray-700">Date and Time:</label>
+              <input type="datetime-local" id="diet-timestamp" name="timestamp" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="meal-type" class="block text-sm font-medium text-gray-700">Meal Type:</label>
+              <select id="meal-type" name="mealType" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <option value="">Select Meal Type</option>
+                <option value="Breakfast">Breakfast</option>
+                <option value="Lunch">Lunch</option>
+                <option value="Dinner">Dinner</option>
+                <option value="Snack">Snack</option>
+              </select>
+            </div>
+            <div>
+              <label for="foods-consumed" class="block text-sm font-medium text-gray-700">Foods Consumed
+                (comma-separated, include
+                details like "gluten-free pasta"):</label>
+              <textarea id="foods-consumed" name="foods" rows="3" placeholder="e.g., Oatmeal (gluten-free), Almond milk, Berries"
+                required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+              </div>
+              <div>
+                <label for="histamine-level" class="block text-sm font-medium text-gray-700">Perceived Histamine
+                  Level:</label>
+                <select id="histamine-level" name="perceivedHistamineLevel"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                  <option value="Low">Low</option>
+                  <option value="Moderate">Moderate</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+              <div>
+                <label for="diet-notes" class="block text-sm font-medium text-gray-700">Notes:</label>
+                <textarea id="diet-notes" name="notes" rows="3" placeholder="Any reactions, preparation methods, etc."
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+              </div>
+              <button type="submit"
+                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">Add
+                Diet Log</button>
+              </form>
 
-      <!-- Diet Section -->
-      <section id="diet-section" class="page-section section-content">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Log Dietary Intake</h2>
-        <form id="diet-form" class="space-y-4">
-          <div>
-            <label for="diet-timestamp" class="block text-sm font-medium text-gray-700">Date and Time:</label>
-            <input type="datetime-local" id="diet-timestamp" name="timestamp" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="meal-type" class="block text-sm font-medium text-gray-700">Meal Type:</label>
-            <select id="meal-type" name="mealType" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-              <option value="">Select Meal Type</option>
-              <option value="Breakfast">Breakfast</option>
-              <option value="Lunch">Lunch</option>
-              <option value="Dinner">Dinner</option>
-              <option value="Snack">Snack</option>
-            </select>
-          </div>
-          <div>
-            <label for="foods-consumed" class="block text-sm font-medium text-gray-700">Foods Consumed (comma-separated,
-              include details like "gluten-free pasta"):</label>
-            <textarea id="foods-consumed" name="foods" rows="3"
-              placeholder="e.g., Oatmeal (gluten-free), Almond milk, Berries" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-          </div>
-          <div>
-            <label for="histamine-level" class="block text-sm font-medium text-gray-700">Perceived Histamine
-              Level:</label>
-            <select id="histamine-level" name="perceivedHistamineLevel"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-              <option value="Low">Low</option>
-              <option value="Moderate">Moderate</option>
-              <option value="High">High</option>
-            </select>
-          </div>
-          <div>
-            <label for="diet-notes" class="block text-sm font-medium text-gray-700">Notes:</label>
-            <textarea id="diet-notes" name="notes" rows="3" placeholder="Any reactions, preparation methods, etc."
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-          </div>
-          <button type="submit"
-            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">Add
-            Diet Log</button>
-        </form>
+          <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Your Dietary Logs</h3>
+          <div id="diet-logs-display" class="space-y-4">
+            <p class="text-gray-500 text-center">No dietary logs yet. Add one above!</p>
+            </div>
+            </section>
+        <section id="mood-section" class="page-section section-content">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Log Mood & Mental State</h2>
+          <form id="mood-form" class="space-y-4">
+            <div>
+              <label for="mood-timestamp" class="block text-sm font-medium text-gray-700">Date and Time:</label>
+              <input type="datetime-local" id="mood-timestamp" name="timestamp" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="emotional-state" class="block text-sm font-medium text-gray-700">Emotional State:</label>
+              <input type="text" id="emotional-state" name="emotionalState" placeholder="e.g., Anxious, Calm, Irritable"
+                required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="mood-severity" class="block text-sm font-medium text-gray-700">Severity (1-10):</label>
+              <input type="number" id="mood-severity" name="severity" min="1" max="10" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="cognitive-symptoms" class="block text-sm font-medium text-gray-700">Cognitive Symptoms
+                (comma-separated):</label>
+              <input type="text" id="cognitive-symptoms" name="cognitiveSymptoms"
+                placeholder="e.g., Brain fog, Difficulty concentrating"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="psychosocial-stressors" class="block text-sm font-medium text-gray-700">Psychosocial Stressors
+                (comma-separated):</label>
+              <input type="text" id="psychosocial-stressors" name="psychosocialStressors"
+                placeholder="e.g., Work stress, Loneliness"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="mood-notes" class="block text-sm font-medium text-gray-700">Notes:</label>
+              <textarea id="mood-notes" name="notes" rows="3" placeholder="Any specific events or observations"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+            </div>
+            <button type="submit"
+              class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">Add
+              Mood Log</button>
+          </form>
 
-        <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Your Dietary Logs</h3>
-        <div id="diet-logs-display" class="space-y-4">
-          <!-- Diet logs will be dynamically loaded here -->
-          <p class="text-gray-500 text-center">No dietary logs yet. Add one above!</p>
-        </div>
-      </section>
+          <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Your Mood Entries</h3>
+          <div id="mood-logs-display" class="space-y-4">
+            <p class="text-gray-500 text-center">No mood entries yet. Add one above!</p>
+            </div>
+            </section>
+        <section id="sleep-section" class="page-section section-content">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Log Sleep Patterns</h2>
+          <form id="sleep-form" class="space-y-4">
+            <div>
+              <label for="sleep-start-time" class="block text-sm font-medium text-gray-700">Sleep Start Time:</label>
+              <input type="datetime-local" id="sleep-start-time" name="startTime" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="sleep-end-time" class="block text-sm font-medium text-gray-700">Sleep End Time:</label>
+              <input type="datetime-local" id="sleep-end-time" name="endTime" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="sleep-quality" class="block text-sm font-medium text-gray-700">Sleep Quality (1-5, 5 being
+                best):</label>
+              <input type="number" id="sleep-quality" name="quality" min="1" max="5" required
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+              <label for="sleep-disturbances" class="block text-sm font-medium text-gray-700">Disturbances
+                (comma-separated):</label>
+              <input type="text" id="sleep-disturbances" name="disturbances" placeholder="e.g., Insomnia, Frequent awakenings"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+              </div>
+              <div>
+                <label for="sleep-notes" class="block text-sm font-medium text-gray-700">Notes:</label>
+                <textarea id="sleep-notes" name="notes" rows="3" placeholder="How did you feel upon waking?"
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+              </div>
+              <button type="submit"
+                class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">Add
+                Sleep Record</button>
+              </form>
 
-      <!-- Mood Section -->
-      <section id="mood-section" class="page-section section-content">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Log Mood & Mental State</h2>
-        <form id="mood-form" class="space-y-4">
-          <div>
-            <label for="mood-timestamp" class="block text-sm font-medium text-gray-700">Date and Time:</label>
-            <input type="datetime-local" id="mood-timestamp" name="timestamp" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="emotional-state" class="block text-sm font-medium text-gray-700">Emotional State:</label>
-            <input type="text" id="emotional-state" name="emotionalState" placeholder="e.g., Anxious, Calm, Irritable"
-              required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="mood-severity" class="block text-sm font-medium text-gray-700">Severity (1-10):</label>
-            <input type="number" id="mood-severity" name="severity" min="1" max="10" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="cognitive-symptoms" class="block text-sm font-medium text-gray-700">Cognitive Symptoms
-              (comma-separated):</label>
-            <input type="text" id="cognitive-symptoms" name="cognitiveSymptoms"
-              placeholder="e.g., Brain fog, Difficulty concentrating"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="psychosocial-stressors" class="block text-sm font-medium text-gray-700">Psychosocial Stressors
-              (comma-separated):</label>
-            <input type="text" id="psychosocial-stressors" name="psychosocialStressors"
-              placeholder="e.g., Work stress, Loneliness"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="mood-notes" class="block text-sm font-medium text-gray-700">Notes:</label>
-            <textarea id="mood-notes" name="notes" rows="3" placeholder="Any specific events or observations"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-          </div>
-          <button type="submit"
-            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">Add
-            Mood Log</button>
-        </form>
+          <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Your Sleep Records</h3>
+          <div id="sleep-logs-display" class="space-y-4">
+            <p class="text-gray-500 text-center">No sleep records yet. Add one above!</p>
+            </div>
+            </section>
+        <section id="reports-section" class="page-section section-content">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Generate Reports</h2>
+          <div class="space-y-4">
+            <button id="export-symptoms-csv"
+              class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200">Export
+              Symptoms to CSV</button>
+            <button id="export-diet-csv"
+              class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200">Export
+              Diet to CSV</button>
+            <button id="export-mood-csv"
+              class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200">Export
+              Mood to CSV</button>
+            <button id="export-sleep-csv"
+              class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200">Export
+              Sleep to CSV</button>
 
-        <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Your Mood Entries</h3>
-        <div id="mood-logs-display" class="space-y-4">
-          <!-- Mood logs will be dynamically loaded here -->
-          <p class="text-gray-500 text-center">No mood entries yet. Add one above!</p>
-        </div>
-      </section>
-
-      <!-- Sleep Section -->
-      <section id="sleep-section" class="page-section section-content">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Log Sleep Patterns</h2>
-        <form id="sleep-form" class="space-y-4">
-          <div>
-            <label for="sleep-start-time" class="block text-sm font-medium text-gray-700">Sleep Start Time:</label>
-            <input type="datetime-local" id="sleep-start-time" name="startTime" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="sleep-end-time" class="block text-sm font-medium text-gray-700">Sleep End Time:</label>
-            <input type="datetime-local" id="sleep-end-time" name="endTime" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="sleep-quality" class="block text-sm font-medium text-gray-700">Sleep Quality (1-5, 5 being
-              best):</label>
-            <input type="number" id="sleep-quality" name="quality" min="1" max="5" required
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="sleep-disturbances" class="block text-sm font-medium text-gray-700">Disturbances
-              (comma-separated):</label>
-            <input type="text" id="sleep-disturbances" name="disturbances"
-              placeholder="e.g., Insomnia, Frequent awakenings"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-          </div>
-          <div>
-            <label for="sleep-notes" class="block text-sm font-medium text-gray-700">Notes:</label>
-            <textarea id="sleep-notes" name="notes" rows="3" placeholder="How did you feel upon waking?"
-              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-          </div>
-          <button type="submit"
-            class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">Add
-            Sleep Record</button>
-        </form>
-
-        <h3 class="text-xl font-semibold text-gray-800 mt-8 mb-4">Your Sleep Records</h3>
-        <div id="sleep-logs-display" class="space-y-4">
-          <!-- Sleep records will be dynamically loaded here -->
-          <p class="text-gray-500 text-center">No sleep records yet. Add one above!</p>
-        </div>
-      </section>
-
-      <!-- Reports Section -->
-      <section id="reports-section" class="page-section section-content">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-4">Generate Reports</h2>
-        <div class="space-y-4">
-          <button id="export-symptoms-csv"
-            class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200">Export
-            Symptoms to CSV</button>
-          <button id="export-diet-csv"
-            class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200">Export
-            Diet to CSV</button>
-          <button id="export-mood-csv"
-            class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200">Export
-            Mood to CSV</button>
-          <button id="export-sleep-csv"
-            class="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors duration-200">Export
-            Sleep to CSV</button>
-
-          <button id="share-report-btn"
-            class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200 mt-4">Share
-            Current View (Web Share API)</button>
-          <p class="text-sm text-gray-500 mt-2">Note: "Share Current View" uses the experimental Web Share API and may
-            not be supported on all devices/browsers.</p>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <!-- Message Modal (instead of alert()) -->
-  <div id="message-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
-      <h3 id="modal-title" class="text-xl font-semibold text-gray-800 mb-4"></h3>
-      <p id="modal-message" class="text-gray-700 mb-6"></p>
-      <button id="modal-close-btn"
-        class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">OK</button>
+            <button id="share-report-btn"
+              class="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 transition-colors duration-200 mt-4">Share
+              Current View (Web Share API)</button>
+            <p class="text-sm text-gray-500 mt-2">Note: "Share Current View" uses the experimental Web Share API and may
+              not be
+              supported on all devices/browsers.</p>
+              </div>
+              </section>
+              </div>
+              </main>
+    <div id="message-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden z-50">
+      <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full text-center">
+        <h3 id="modal-title" class="text-xl font-semibold text-gray-800 mb-4"></h3>
+        <p id="modal-message" class="text-gray-700 mb-6"></p>
+        <button id="modal-close-btn"
+          class="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200">OK</button>
+      </div>
     </div>
   </div>
-
-  <footer class="bg-gray-800 text-white text-center p-4 text-sm">
-    <p>&copy; 2024 MCAS Tracker PWA. All rights reserved.</p>
-  </footer>
-
-  <!-- Service Worker registration -->
-  <script>
-        if ("serviceWorker" in navigator) {
-          window.addEventListener("load", () => {
-            const serviceWorkerCode = `importScripts('/sw.js');`;
-
-          // Create a Blob from the service worker code string
-          const blob = new Blob([serviceWorkerCode], {
-            type: "application/javascript",
-          });
-        // Create a URL for the Blob
-        const blobUrl = URL.createObjectURL(blob);
-
-        // Register the Service Worker using the Blob URL
-          navigator.serviceWorker
-            .register(blobUrl, { scope: "./" }) // Scope set to current directory
-            .then((registration) => {
-              console.log(
-                "Service Worker registered with scope:",
-                registration.scope,
-              );
-          })
-          .catch((error) => {
-            console.error("Service Worker registration failed:", error);
-          });
-      });
-    }
-  </script>
 </body>
 
 </html>

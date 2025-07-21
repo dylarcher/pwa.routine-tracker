@@ -5,136 +5,6 @@ const DB_NAME = "MCAS_Health_DB";
 const DB_VERSION = 1; // Increment this for schema migrations
 let db;
 
-// Function to open and initialize the IndexedDB database
-function openDatabase() {
-	return new Promise((resolve, reject) => {
-		const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-		request.onupgradeneeded = (event) => {
-			db = event.target.result;
-			console.log("IndexedDB: Upgrade needed. Creating object stores...");
-
-			// Create object stores if they don't exist
-			if (!db.objectStoreNames.contains("symptom_logs")) {
-				const symptomStore = db.createObjectStore("symptom_logs", {
-					keyPath: "log_id",
-					autoIncrement: true,
-				});
-				symptomStore.createIndex("user_id", "user_id", { unique: false });
-				symptomStore.createIndex("timestamp", "timestamp", { unique: false });
-				symptomStore.createIndex("symptom_type", "symptom_type", {
-					unique: false,
-				});
-				symptomStore.createIndex("severity", "severity", { unique: false });
-			}
-			if (!db.objectStoreNames.contains("dietary_logs")) {
-				const dietStore = db.createObjectStore("dietary_logs", {
-					keyPath: "meal_id",
-					autoIncrement: true,
-				});
-				dietStore.createIndex("user_id", "user_id", { unique: false });
-				dietStore.createIndex("timestamp", "timestamp", { unique: false });
-				dietStore.createIndex("meal_type", "meal_type", { unique: false });
-			}
-			if (!db.objectStoreNames.contains("mood_entries")) {
-				const moodStore = db.createObjectStore("mood_entries", {
-					keyPath: "mood_id",
-					autoIncrement: true,
-				});
-				moodStore.createIndex("user_id", "user_id", { unique: false });
-				moodStore.createIndex("timestamp", "timestamp", { unique: false });
-				moodStore.createIndex("emotional_state", "emotional_state", {
-					unique: false,
-				});
-				moodStore.createIndex("severity", "severity", { unique: false });
-			}
-			if (!db.objectStoreNames.contains("sleep_records")) {
-				const sleepStore = db.createObjectStore("sleep_records", {
-					keyPath: "sleep_id",
-					autoIncrement: true,
-				});
-				sleepStore.createIndex("user_id", "user_id", { unique: false });
-				sleepStore.createIndex("start_time", "start_time", { unique: false });
-				sleepStore.createIndex("end_time", "end_time", { unique: false });
-				sleepStore.createIndex("quality", "quality", { unique: false });
-			}
-			// For a real app, 'users' and 'attachments' would also be created.
-			// For simplicity, we'll assume a single user for this demo and no direct attachment storage.
-			console.log("IndexedDB: Object stores created/updated.");
-		};
-
-		request.onsuccess = (event) => {
-			db = event.target.result;
-			console.log("IndexedDB: Database opened successfully.");
-			resolve(db);
-		};
-
-		request.onerror = (event) => {
-			console.error("IndexedDB: Database error:", event.target.errorCode);
-			showMessageModal(
-				"Database Error",
-				"Could not open the local database. Some features may not work offline.",
-			);
-			reject(event.target.error);
-		};
-	});
-}
-
-// Generic function to add data to an IndexedDB object store
-async function addData(storeName, data) {
-	if (!db) {
-		await openDatabase(); // Ensure DB is open before operations
-	}
-	return new Promise((resolve, reject) => {
-		const transaction = db.transaction([storeName], "readwrite");
-		const store = transaction.objectStore(storeName);
-		const request = store.add(data);
-
-		request.onsuccess = () => {
-			console.log(`Data added to ${storeName}:`, data);
-			resolve(request.result);
-		};
-
-		request.onerror = (event) => {
-			console.error(`Error adding data to ${storeName}:`, event.target.error);
-			showMessageModal(
-				"Error Saving Data",
-				`Could not save your data to ${storeName}.`,
-			);
-			reject(event.target.error);
-		};
-	});
-}
-
-// Generic function to get all data from an IndexedDB object store
-async function getAllData(storeName) {
-	if (!db) {
-		await openDatabase();
-	}
-	return new Promise((resolve, reject) => {
-		const transaction = db.transaction([storeName], "readonly");
-		const store = transaction.objectStore(storeName);
-		const request = store.getAll();
-
-		request.onsuccess = () => {
-			console.log(`Retrieved all data from ${storeName}.`);
-			resolve(request.result);
-		};
-
-		request.onerror = (event) => {
-			console.error(
-				`Error retrieving data from ${storeName}:`,
-				event.target.error,
-			);
-			showMessageModal(
-				"Error Loading Data",
-				`Could not load data from ${storeName}.`,
-			);
-			reject(event.target.error);
-		};
-	});
-}
-
 // --- UI and Event Handlers ---
 
 // Message Modal Functions
@@ -143,12 +13,6 @@ const modalTitle = document.getElementById("modal-title");
 const modalMessage = document.getElementById("modal-message");
 const modalCloseBtn = document.getElementById("modal-close-btn");
 
-function showMessageModal(title, message) {
-	modalTitle.textContent = title;
-	modalMessage.textContent = message;
-	messageModal.classList.remove("hidden");
-}
-
 modalCloseBtn.addEventListener("click", () => {
 	messageModal.classList.add("hidden");
 });
@@ -156,31 +20,6 @@ modalCloseBtn.addEventListener("click", () => {
 // Navigation
 const navButtons = document.querySelectorAll("nav button");
 const sections = document.querySelectorAll(".page-section");
-
-function showSection(sectionId) {
-	sections.forEach((section) => {
-		section.classList.remove("active-section");
-	});
-	document.getElementById(sectionId).classList.add("active-section");
-
-	navButtons.forEach((button) => {
-		button.classList.remove("text-blue-600", "border-blue-600");
-		button.classList.add("text-gray-600", "border-gray-200");
-	});
-	const activeButton = document.getElementById(
-		`nav-${sectionId.replace("-section", "")}`,
-	);
-	if (activeButton) {
-		activeButton.classList.add("text-blue-600", "border-blue-600");
-		activeButton.classList.remove("text-gray-600", "border-gray-200");
-	}
-
-	// Refresh display for the active section
-	if (sectionId === "symptoms-section") renderSymptomLogs();
-	if (sectionId === "diet-section") renderDietaryLogs();
-	if (sectionId === "mood-section") renderMoodEntries();
-	if (sectionId === "sleep-section") renderSleepRecords();
-}
 
 navButtons.forEach((button) => {
 	button.addEventListener("click", (event) => {
@@ -411,195 +250,6 @@ document
 		}
 	});
 
-// --- Data Display Functions ---
-
-async function renderSymptomLogs() {
-	const displayDiv = document.getElementById("symptom-logs-display");
-	displayDiv.innerHTML = ""; // Clear previous logs
-	try {
-		const logs = await getAllData("symptom_logs");
-		if (logs.length === 0) {
-			displayDiv.innerHTML =
-				'<p class="text-gray-500 text-center">No symptom logs yet. Add one above!</p>';
-			return;
-		}
-		// Sort by timestamp descending
-		logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-		logs.forEach((log) => {
-			const logElement = document.createElement("div");
-			logElement.className =
-				"bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200";
-			logElement.innerHTML = `
-                <p class="text-sm text-gray-500">${new Date(log.timestamp).toLocaleString()}</p>
-                <h4 class="text-lg font-semibold text-gray-800">${log.symptom_type} (Severity: ${log.severity}/10)</h4>
-                ${log.duration_minutes ? `<p class="text-gray-600">Duration: ${log.duration_minutes} mins</p>` : ""}
-                ${log.associated_triggers && log.associated_triggers.length > 0 ? `<p class="text-gray-600">Triggers: ${log.associated_triggers.join(", ")}</p>` : ""}
-                ${log.relief_measures ? `<p class="text-gray-600">Relief: ${log.relief_measures}</p>` : ""}
-            `;
-			displayDiv.appendChild(logElement);
-		});
-	} catch (error) {
-		displayDiv.innerHTML =
-			'<p class="text-red-500 text-center">Error loading symptom logs.</p>';
-		console.error("Error rendering symptom logs:", error);
-	}
-}
-
-async function renderDietaryLogs() {
-	const displayDiv = document.getElementById("diet-logs-display");
-	displayDiv.innerHTML = ""; // Clear previous logs
-	try {
-		const logs = await getAllData("dietary_logs");
-		if (logs.length === 0) {
-			displayDiv.innerHTML =
-				'<p class="text-gray-500 text-center">No dietary logs yet. Add one above!</p>';
-			return;
-		}
-		logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-		logs.forEach((log) => {
-			const foodList = log.foods.map((f) => f.name).join(", ");
-			const logElement = document.createElement("div");
-			logElement.className =
-				"bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200";
-			logElement.innerHTML = `
-                <p class="text-sm text-gray-500">${new Date(log.timestamp).toLocaleString()} - ${log.meal_type}</p>
-                <h4 class="text-lg font-semibold text-gray-800">Foods: ${foodList}</h4>
-                <p class="text-gray-600">Histamine Level: ${log.perceived_histamine_level}</p>
-                ${log.notes ? `<p class="text-gray-600">Notes: ${log.notes}</p>` : ""}
-            `;
-			displayDiv.appendChild(logElement);
-		});
-	} catch (error) {
-		displayDiv.innerHTML =
-			'<p class="text-red-500 text-center">Error loading dietary logs.</p>';
-		console.error("Error rendering dietary logs:", error);
-	}
-}
-
-async function renderMoodEntries() {
-	const displayDiv = document.getElementById("mood-logs-display");
-	displayDiv.innerHTML = ""; // Clear previous logs
-	try {
-		const logs = await getAllData("mood_entries");
-		if (logs.length === 0) {
-			displayDiv.innerHTML =
-				'<p class="text-gray-500 text-center">No mood entries yet. Add one above!</p>';
-			return;
-		}
-		logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-		logs.forEach((log) => {
-			const logElement = document.createElement("div");
-			logElement.className =
-				"bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200";
-			logElement.innerHTML = `
-                <p class="text-sm text-gray-500">${new Date(log.timestamp).toLocaleString()}</p>
-                <h4 class="text-lg font-semibold text-gray-800">Mood: ${log.emotional_state} (Severity: ${log.severity}/10)</h4>
-                ${log.cognitive_symptoms && log.cognitive_symptoms.length > 0 ? `<p class="text-gray-600">Cognitive: ${log.cognitive_symptoms.join(", ")}</p>` : ""}
-                ${log.psychosocial_stressors && log.psychosocial_stressors.length > 0 ? `<p class="text-gray-600">Stressors: ${log.psychosocial_stressors.join(", ")}</p>` : ""}
-                ${log.notes ? `<p class="text-gray-600">Notes: ${log.notes}</p>` : ""}
-            `;
-			displayDiv.appendChild(logElement);
-		});
-	} catch (error) {
-		displayDiv.innerHTML =
-			'<p class="text-red-500 text-center">Error loading mood entries.</p>';
-		console.error("Error rendering mood entries:", error);
-	}
-}
-
-async function renderSleepRecords() {
-	const displayDiv = document.getElementById("sleep-logs-display");
-	displayDiv.innerHTML = ""; // Clear previous logs
-	try {
-		const logs = await getAllData("sleep_records");
-		if (logs.length === 0) {
-			displayDiv.innerHTML =
-				'<p class="text-gray-500 text-center">No sleep records yet. Add one above!</p>';
-			return;
-		}
-		logs.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
-
-		logs.forEach((log) => {
-			const logElement = document.createElement("div");
-			logElement.className =
-				"bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200";
-			logElement.innerHTML = `
-                <p class="text-sm text-gray-500">From ${new Date(log.start_time).toLocaleString()} to ${new Date(log.end_time).toLocaleString()}</p>
-                <h4 class="text-lg font-semibold text-gray-800">Sleep Quality: ${log.quality}/5</h4>
-                ${log.duration_hours ? `<p class="text-gray-600">Duration: ${log.duration_hours.toFixed(1)} hours</p>` : ""}
-                ${log.disturbances && log.disturbances.length > 0 ? `<p class="text-gray-600">Disturbances: ${log.disturbances.join(", ")}</p>` : ""}
-                ${log.notes ? `<p class="text-gray-600">Notes: ${log.notes}</p>` : ""}
-            `;
-			displayDiv.appendChild(logElement);
-		});
-	} catch (error) {
-		displayDiv.innerHTML =
-			'<p class="text-red-500 text-center">Error loading sleep records.</p>';
-		console.error("Error rendering sleep records:", error);
-	}
-}
-
-// --- Report Generation and Export ---
-
-// Helper to convert array of objects to CSV string
-function convertToCSV(data, headers) {
-	if (!data || data.length === 0) return "";
-
-	// Use provided headers or derive from first object keys
-	const actualHeaders = headers || Object.keys(data[0]);
-	const csvRows = [];
-
-	// Add header row
-	csvRows.push(actualHeaders.join(","));
-
-	// Add data rows
-	for (const row of data) {
-		const values = actualHeaders.map((header) => {
-			let value = row[header];
-			if (Array.isArray(value)) {
-				value = value.join(";"); // Join array elements with a semicolon
-			} else if (typeof value === "object" && value !== null) {
-				value = JSON.stringify(value); // Stringify nested objects
-			}
-			// Handle commas and newlines in values by enclosing in quotes
-			if (
-				typeof value === "string" &&
-				(value.includes(",") || value.includes("\n") || value.includes('"'))
-			) {
-				return `"${value.replace(/"/g, '""')}"`; // Escape double quotes
-			}
-			return value;
-		});
-		csvRows.push(values.join(","));
-	}
-	return csvRows.join("\n");
-}
-
-// Function to download CSV
-function downloadCSV(csvString, filename) {
-	const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-	const link = document.createElement("a");
-	if (link.download !== undefined) {
-		// Feature detection for download attribute
-		const url = URL.createObjectURL(blob);
-		link.setAttribute("href", url);
-		link.setAttribute("download", filename);
-		link.style.visibility = "hidden";
-		document.body.appendChild(link);
-		link.click();
-		document.body.removeChild(link);
-		showMessageModal("Export Complete", `${filename} downloaded successfully!`);
-	} else {
-		showMessageModal(
-			"Export Failed",
-			"Your browser does not support direct CSV download.",
-		);
-	}
-}
-
 document
 	.getElementById("export-symptoms-csv")
 	.addEventListener("click", async () => {
@@ -758,6 +408,384 @@ document
 		}
 	});
 
+if ("serviceWorker" in navigator) {
+	// You might trigger permission request on a dedicated settings page or first interaction
+	// For demo purposes, not automatically requesting on load.
+	// document.getElementById('request-notification-permission-btn').addEventListener('click', requestNotificationPermission); // If you add a button for this
+
+	window.addEventListener("load", bindServiceWorker);
+	function bindServiceWorker() {
+		navigator.serviceWorker
+			.register("/worker.service.js")
+			.then(console.info)
+			.catch(console.error);
+	}
+
+	window.requestAnimationFrame(() => {
+		requestNotificationPermission();
+		sendTestNotification();
+	});
+}
+
+// Function to open and initialize the IndexedDB database
+function openDatabase() {
+	return new Promise((resolve, reject) => {
+		const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+		request.onupgradeneeded = (event) => {
+			db = event.target.result;
+			console.log("IndexedDB: Upgrade needed. Creating object stores...");
+
+			// Create object stores if they don't exist
+			if (!db.objectStoreNames.contains("symptom_logs")) {
+				const symptomStore = db.createObjectStore("symptom_logs", {
+					keyPath: "log_id",
+					autoIncrement: true,
+				});
+				symptomStore.createIndex("user_id", "user_id", { unique: false });
+				symptomStore.createIndex("timestamp", "timestamp", { unique: false });
+				symptomStore.createIndex("symptom_type", "symptom_type", {
+					unique: false,
+				});
+				symptomStore.createIndex("severity", "severity", { unique: false });
+			}
+			if (!db.objectStoreNames.contains("dietary_logs")) {
+				const dietStore = db.createObjectStore("dietary_logs", {
+					keyPath: "meal_id",
+					autoIncrement: true,
+				});
+				dietStore.createIndex("user_id", "user_id", { unique: false });
+				dietStore.createIndex("timestamp", "timestamp", { unique: false });
+				dietStore.createIndex("meal_type", "meal_type", { unique: false });
+			}
+			if (!db.objectStoreNames.contains("mood_entries")) {
+				const moodStore = db.createObjectStore("mood_entries", {
+					keyPath: "mood_id",
+					autoIncrement: true,
+				});
+				moodStore.createIndex("user_id", "user_id", { unique: false });
+				moodStore.createIndex("timestamp", "timestamp", { unique: false });
+				moodStore.createIndex("emotional_state", "emotional_state", {
+					unique: false,
+				});
+				moodStore.createIndex("severity", "severity", { unique: false });
+			}
+			if (!db.objectStoreNames.contains("sleep_records")) {
+				const sleepStore = db.createObjectStore("sleep_records", {
+					keyPath: "sleep_id",
+					autoIncrement: true,
+				});
+				sleepStore.createIndex("user_id", "user_id", { unique: false });
+				sleepStore.createIndex("start_time", "start_time", { unique: false });
+				sleepStore.createIndex("end_time", "end_time", { unique: false });
+				sleepStore.createIndex("quality", "quality", { unique: false });
+			}
+			// For a real app, 'users' and 'attachments' would also be created.
+			// For simplicity, we'll assume a single user for this demo and no direct attachment storage.
+			console.log("IndexedDB: Object stores created/updated.");
+		};
+
+		request.onsuccess = (event) => {
+			db = event.target.result;
+			console.log("IndexedDB: Database opened successfully.");
+			resolve(db);
+		};
+
+		request.onerror = (event) => {
+			console.error("IndexedDB: Database error:", event.target.errorCode);
+			showMessageModal(
+				"Database Error",
+				"Could not open the local database. Some features may not work offline.",
+			);
+			reject(event.target.error);
+		};
+	});
+}
+
+// Generic function to add data to an IndexedDB object store
+async function addData(storeName, data) {
+	if (!db) {
+		await openDatabase(); // Ensure DB is open before operations
+	}
+	return new Promise((resolve, reject) => {
+		const transaction = db.transaction([storeName], "readwrite");
+		const store = transaction.objectStore(storeName);
+		const request = store.add(data);
+
+		request.onsuccess = () => {
+			console.log(`Data added to ${storeName}:`, data);
+			resolve(request.result);
+		};
+
+		request.onerror = (event) => {
+			console.error(`Error adding data to ${storeName}:`, event.target.error);
+			showMessageModal(
+				"Error Saving Data",
+				`Could not save your data to ${storeName}.`,
+			);
+			reject(event.target.error);
+		};
+	});
+}
+
+// Generic function to get all data from an IndexedDB object store
+async function getAllData(storeName) {
+	if (!db) {
+		await openDatabase();
+	}
+	return new Promise((resolve, reject) => {
+		const transaction = db.transaction([storeName], "readonly");
+		const store = transaction.objectStore(storeName);
+		const request = store.getAll();
+
+		request.onsuccess = () => {
+			console.log(`Retrieved all data from ${storeName}.`);
+			resolve(request.result);
+		};
+
+		request.onerror = (event) => {
+			console.error(
+				`Error retrieving data from ${storeName}:`,
+				event.target.error,
+			);
+			showMessageModal(
+				"Error Loading Data",
+				`Could not load data from ${storeName}.`,
+			);
+			reject(event.target.error);
+		};
+	});
+}
+
+function showMessageModal(title, message) {
+	modalTitle.textContent = title;
+	modalMessage.textContent = message;
+	messageModal.classList.remove("hidden");
+}
+
+function showSection(sectionId) {
+	sections.forEach((section) => {
+		section.classList.remove("active-section");
+	});
+	document.getElementById(sectionId).classList.add("active-section");
+
+	navButtons.forEach((button) => {
+		// Remove all possible tab state classes
+		button.classList.remove(
+			"text-blue-600",
+			"border-blue-600",
+			"text-gray-600",
+			"border-gray-200",
+		);
+		// Set inactive state by default
+		button.classList.add("text-gray-600", "border-gray-200");
+	});
+	const activeButton = document.getElementById(
+		`nav-${sectionId.replace("-section", "")}`,
+	);
+	if (activeButton) {
+		// Remove inactive state
+		activeButton.classList.remove("text-gray-600", "border-gray-200");
+		// Add active state
+		activeButton.classList.add("text-blue-600", "border-blue-600");
+	}
+
+	// Refresh display for the active section
+	if (sectionId === "symptoms-section") renderSymptomLogs();
+	if (sectionId === "diet-section") renderDietaryLogs();
+	if (sectionId === "mood-section") renderMoodEntries();
+	if (sectionId === "sleep-section") renderSleepRecords();
+}
+
+// --- Data Display Functions ---
+
+async function renderSymptomLogs() {
+	const displayDiv = document.getElementById("symptom-logs-display");
+	displayDiv.innerHTML = ""; // Clear previous logs
+	try {
+		const logs = await getAllData("symptom_logs");
+		if (logs.length === 0) {
+			displayDiv.innerHTML =
+				'<p class="text-gray-500 text-center">No symptom logs yet. Add one above!</p>';
+			return;
+		}
+		// Sort by timestamp descending
+		logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+		logs.forEach((log) => {
+			const logElement = document.createElement("div");
+			logElement.className =
+				"bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200";
+			logElement.innerHTML = `
+				<p class="text-sm text-gray-500">${new Date(log.timestamp).toLocaleString()}</p>
+				<h4 class="text-lg font-semibold text-gray-800">${log.symptom_type} (Severity: ${log.severity}/10)</h4>
+				${log.duration_minutes ? `<p class="text-gray-600">Duration: ${log.duration_minutes} mins</p>` : ""}
+				${log.associated_triggers && log.associated_triggers.length > 0 ? `<p class="text-gray-600">Triggers: ${log.associated_triggers.join(", ")}</p>` : ""}
+				${log.relief_measures ? `<p class="text-gray-600">Relief: ${log.relief_measures}</p>` : ""}
+			`;
+			displayDiv.appendChild(logElement);
+		});
+	} catch (error) {
+		displayDiv.innerHTML =
+			'<p class="text-red-500 text-center">Error loading symptom logs.</p>';
+		console.error("Error rendering symptom logs:", error);
+	}
+}
+
+async function renderDietaryLogs() {
+	const displayDiv = document.getElementById("diet-logs-display");
+	displayDiv.innerHTML = ""; // Clear previous logs
+	try {
+		const logs = await getAllData("dietary_logs");
+		if (logs.length === 0) {
+			displayDiv.innerHTML =
+				'<p class="text-gray-500 text-center">No dietary logs yet. Add one above!</p>';
+			return;
+		}
+		logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+		logs.forEach((log) => {
+			const foodList = log.foods.map((f) => f.name).join(", ");
+			const logElement = document.createElement("div");
+			logElement.className =
+				"bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200";
+			logElement.innerHTML = `
+				<p class="text-sm text-gray-500">${new Date(log.timestamp).toLocaleString()} - ${log.meal_type}</p>
+				<h4 class="text-lg font-semibold text-gray-800">Foods: ${foodList}</h4>
+				<p class="text-gray-600">Histamine Level: ${log.perceived_histamine_level}</p>
+				${log.notes ? `<p class="text-gray-600">Notes: ${log.notes}</p>` : ""}
+			`;
+			displayDiv.appendChild(logElement);
+		});
+	} catch (error) {
+		displayDiv.innerHTML =
+			'<p class="text-red-500 text-center">Error loading dietary logs.</p>';
+		console.error("Error rendering dietary logs:", error);
+	}
+}
+
+async function renderMoodEntries() {
+	const displayDiv = document.getElementById("mood-logs-display");
+	displayDiv.innerHTML = ""; // Clear previous logs
+	try {
+		const logs = await getAllData("mood_entries");
+		if (logs.length === 0) {
+			displayDiv.innerHTML =
+				'<p class="text-gray-500 text-center">No mood entries yet. Add one above!</p>';
+			return;
+		}
+		logs.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+		logs.forEach((log) => {
+			const logElement = document.createElement("div");
+			logElement.className =
+				"bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200";
+			logElement.innerHTML = `
+				<p class="text-sm text-gray-500">${new Date(log.timestamp).toLocaleString()}</p>
+				<h4 class="text-lg font-semibold text-gray-800">Mood: ${log.emotional_state} (Severity: ${log.severity}/10)</h4>
+				${log.cognitive_symptoms && log.cognitive_symptoms.length > 0 ? `<p class="text-gray-600">Cognitive: ${log.cognitive_symptoms.join(", ")}</p>` : ""}
+				${log.psychosocial_stressors && log.psychosocial_stressors.length > 0 ? `<p class="text-gray-600">Stressors: ${log.psychosocial_stressors.join(", ")}</p>` : ""}
+				${log.notes ? `<p class="text-gray-600">Notes: ${log.notes}</p>` : ""}
+			`;
+			displayDiv.appendChild(logElement);
+		});
+	} catch (error) {
+		displayDiv.innerHTML =
+			'<p class="text-red-500 text-center">Error loading mood entries.</p>';
+		console.error("Error rendering mood entries:", error);
+	}
+}
+
+async function renderSleepRecords() {
+	const displayDiv = document.getElementById("sleep-logs-display");
+	displayDiv.innerHTML = ""; // Clear previous logs
+	try {
+		const logs = await getAllData("sleep_records");
+		if (logs.length === 0) {
+			displayDiv.innerHTML =
+				'<p class="text-gray-500 text-center">No sleep records yet. Add one above!</p>';
+			return;
+		}
+		logs.sort((a, b) => new Date(b.start_time) - new Date(a.start_time));
+
+		logs.forEach((log) => {
+			const logElement = document.createElement("div");
+			logElement.className =
+				"bg-gray-50 p-4 rounded-lg shadow-sm border border-gray-200";
+			logElement.innerHTML = `
+				<p class="text-sm text-gray-500">From ${new Date(log.start_time).toLocaleString()} to ${new Date(log.end_time).toLocaleString()}</p>
+				<h4 class="text-lg font-semibold text-gray-800">Sleep Quality: ${log.quality}/5</h4>
+				${log.duration_hours ? `<p class="text-gray-600">Duration: ${log.duration_hours.toFixed(1)} hours</p>` : ""}
+				${log.disturbances && log.disturbances.length > 0 ? `<p class="text-gray-600">Disturbances: ${log.disturbances.join(", ")}</p>` : ""}
+				${log.notes ? `<p class="text-gray-600">Notes: ${log.notes}</p>` : ""}
+			`;
+			displayDiv.appendChild(logElement);
+		});
+	} catch (error) {
+		displayDiv.innerHTML =
+			'<p class="text-red-500 text-center">Error loading sleep records.</p>';
+		console.error("Error rendering sleep records:", error);
+	}
+}
+
+// --- Report Generation and Export ---
+
+// Helper to convert array of objects to CSV string
+function convertToCSV(data, headers) {
+	if (!data || data.length === 0) return "";
+
+	// Use provided headers or derive from first object keys
+	const actualHeaders = headers || Object.keys(data[0]);
+	const csvRows = [];
+
+	// Add header row
+	csvRows.push(actualHeaders.join(","));
+
+	// Add data rows
+	for (const row of data) {
+		const values = actualHeaders.map((header) => {
+			let value = row[header];
+			if (Array.isArray(value)) {
+				value = value.join(";"); // Join array elements with a semicolon
+			} else if (typeof value === "object" && value !== null) {
+				value = JSON.stringify(value); // Stringify nested objects
+			}
+			// Handle commas and newlines in values by enclosing in quotes
+			if (
+				typeof value === "string" &&
+				(value.includes(",") || value.includes("\n") || value.includes('"'))
+			) {
+				return `"${value.replace(/"/g, '""')}"`; // Escape double quotes
+			}
+			return value;
+		});
+		csvRows.push(values.join(","));
+	}
+	return csvRows.join("\n");
+}
+
+// Function to download CSV
+function downloadCSV(csvString, filename) {
+	const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+	const link = document.createElement("a");
+	if (link.download !== undefined) {
+		// Feature detection for download attribute
+		const url = URL.createObjectURL(blob);
+		link.setAttribute("href", url);
+		link.setAttribute("download", filename);
+		link.style.visibility = "hidden";
+		document.body.appendChild(link);
+		link.click();
+		document.body.removeChild(link);
+		showMessageModal("Export Complete", `${filename} downloaded successfully!`);
+	} else {
+		showMessageModal(
+			"Export Failed",
+			"Your browser does not support direct CSV download.",
+		);
+	}
+}
+
 // Placeholder for Notification Permission Request (would be triggered by user action)
 function requestNotificationPermission() {
 	if ("Notification" in window) {
@@ -792,7 +820,3 @@ function sendTestNotification() {
 		});
 	}
 }
-
-// You might trigger permission request on a dedicated settings page or first interaction
-// For demo purposes, not automatically requesting on load.
-// document.getElementById('request-notification-permission-btn').addEventListener('click', requestNotificationPermission); // If you add a button for this
