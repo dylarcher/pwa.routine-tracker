@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta content="light dark" name="color-scheme">
+  <meta content="#1e40af" name="theme-color">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="/styles.css" rel="stylesheet">
+  <title>MCAS & Histamine Management Guide</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script defer type="module">
+    window.onload = async () => {
+      const { readyState } = document;
+      if ('loading' === readyState) return;
+      const init = await import("/main.js");
+      await init?.default?.();
+    }
+  </script>
+  <!-- Chosen Palette: Warm Harmony (Background: #FFFBF5, Primary Text: #334155, Accent: #14B8A6, Secondary Accent: #F59E0B) -->
+  <!-- Application Structure Plan: The SPA is designed with a user-centric, tabbed navigation structure ("Overview", "Dietary Guide", "Lifestyle & Environment", "Symptom Tracker") to allow for non-linear exploration of information. This is superior to a linear report format as users with MCAS often need to quickly reference specific information (e.g., "Can I eat this food?"). Key interactions include a searchable/filterable food database to provide immediate, actionable dietary guidance, and a session-based symptom tracker to help users identify personal patterns. This task-oriented design transforms passive information consumption into an active management tool. -->
+  <!-- Visualization & Content Choices:
+    - Report Info: Explanation of MCAS. -> Goal: Inform. -> Presentation: Styled text blocks with key terms highlighted. -> Interaction: None. -> Justification: Foundational knowledge needs clear, direct presentation. -> Library: HTML/Tailwind.
+    - Report Info: Foods to eat/avoid. -> Goal: Organize & Inform. -> Presentation: Interactive, filterable lists categorized by food type and safety level ('Safe', 'Caution', 'Avoid'). -> Interaction: User clicks category buttons to show lists; a search input filters all lists dynamically. -> Justification: Provides rapid, personalized answers to the most common user question, far more efficient than reading static tables. -> Library: Vanilla JS, HTML/Tailwind.
+    - Report Info: Relative histamine load of food categories. -> Goal: Compare. -> Presentation: Horizontal Bar Chart. -> Interaction: Tooltips on hover provide extra context. -> Justification: Visually reinforces which food types have the highest impact, aiding in learning and memory. -> Library: Chart.js (Canvas).
+    - Report Info: Lifestyle triggers (stress, sleep, etc.). -> Goal: Organize & Inform. -> Presentation: A grid of interactive cards. -> Interaction: Clicking a card could reveal more detailed tips (though for simplicity, I'll put the tips directly on the card). -> Justification: Breaks down complex lifestyle factors into manageable, visually distinct topics. -> Library: HTML/Tailwind.
+    - Report Info: Symptom fluctuations. -> Goal: Change & Relationships. -> Presentation: A line chart visualizing user-inputted symptom severity over time. -> Interaction: User inputs data into a form, which dynamically updates the chart. -> Justification: Empowers users to see potential correlations between their actions (diet, environment) and symptoms, even if only for the current session. -> Library: Chart.js (Canvas), Vanilla JS.
+    -->
+  <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+
+<body class="antialiased">
+
+  <div class="min-h-screen">
+    <header class="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex flex-col sm:flex-row justify-between items-center">
+          <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-slate-800">MCAS & Histamine Management Guide</h1>
+            <p class="text-sm text-slate-500 mt-1">An interactive guide to diet, lifestyle, and tracking.</p>
+          </div>
+          <nav class="flex flex-wrap justify-center space-x-2 sm:space-x-4 mt-4 sm:mt-0">
+            <button data-target="overview"
+              class="nav-button active text-sm sm:text-base font-medium text-slate-600 hover:text-teal-600 py-2 px-2 sm:px-3">Overview</button>
+            <button data-target="diet"
+              class="nav-button text-sm sm:text-base font-medium text-slate-600 hover:text-teal-600 py-2 px-2 sm:px-3">Dietary
+              Guide</button>
+            <button data-target="lifestyle"
+              class="nav-button text-sm sm:text-base font-medium text-slate-600 hover:text-teal-600 py-2 px-2 sm:px-3">Lifestyle
+              & Environment</button>
+            <button data-target="tracker"
+              class="nav-button text-sm sm:text-base font-medium text-slate-600 hover:text-teal-600 py-2 px-2 sm:px-3">Symptom
+              Tracker</button>
+          </nav>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- Overview Section -->
+      <section id="overview" class="content-section active">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
+          <h2 class="text-2xl font-bold text-slate-700 mb-4">Understanding Histamine & Mast Cell Activation</h2>
+          <p class="text-slate-600 mb-6 leading-relaxed">
+            This section provides a foundational understanding of Mast Cell Activation Syndrome (MCAS) and histamine
+            intolerance. Mast cells are part of your immune system and release chemicals, including histamine, to
+            protect you. In MCAS, mast cells are overly sensitive and release these chemicals too frequently, leading to
+            a wide range of allergic-type symptoms. Managing this condition often involves reducing your body's total
+            histamine load through diet and lifestyle adjustments.
+          </p>
+          <div class="grid md:grid-cols-2 gap-8">
+            <div class="bg-amber-50 p-6 rounded-lg border border-amber-200">
+              <h3 class="font-semibold text-lg text-amber-800 mb-2">What are Mast Cells?</h3>
+              <p class="text-slate-700">Mast cells are "master regulators" of the immune system. Found in tissues
+                throughout the body, they are first responders to foreign invaders like bacteria or allergens. When
+                triggered, they "degranulate," releasing powerful chemical mediators like <span
+                  class="font-semibold text-teal-700">histamine</span>, cytokines, and leukotrienes.</p>
+            </div>
+            <div class="bg-teal-50 p-6 rounded-lg border border-teal-200">
+              <h3 class="font-semibold text-lg text-teal-800 mb-2">What is MCAS?</h3>
+              <p class="text-slate-700">In Mast Cell Activation Syndrome (MCAS), mast cells are easily triggered by
+                substances that are not typically harmful, such as foods, stress, or temperature changes. This leads to
+                chronic, multi-system inflammatory symptoms. The goal of management is to stabilize mast cells and avoid
+                triggers.</p>
+            </div>
+          </div>
+          <div class="mt-8 p-6 bg-slate-50 rounded-lg">
+            <h3 class="font-semibold text-lg text-slate-800 mb-2">The "Histamine Bucket" Analogy</h3>
+            <p class="text-slate-600">Imagine your body has a bucket. Histamine from various sources (food, stress,
+              allergens) fills this bucket. For most people, the bucket rarely overflows. For those with MCAS or
+              histamine intolerance, the bucket is either smaller or fills up much faster. When it overflows, symptoms
+              appear. A low-histamine diet and lifestyle help keep the level in the bucket manageable.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dietary Guide Section -->
+      <section id="diet" class="content-section">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
+          <h2 class="text-2xl font-bold text-slate-700 mb-4">Interactive Low-Histamine Food Guide</h2>
+          <p class="text-slate-600 mb-6 leading-relaxed">
+            A low-histamine diet is a primary strategy for reducing symptoms. This involves avoiding high-histamine
+            foods and those that trigger histamine release. Use the tools in this section to explore safe, caution, and
+            avoid foods. The search bar allows you to quickly check a specific item across all categories. Remember,
+            personal tolerance varies.
+          </p>
+
+          <div class="mb-6">
+            <input type="text" id="foodSearch"
+              class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+              placeholder="Search for a food (e.g., 'apple', 'cheese')...">
+          </div>
+
+          <div id="food-categories" class="mb-6 flex flex-wrap gap-2">
+          </div>
+
+          <div id="food-lists" class="grid md:grid-cols-3 gap-6">
+          </div>
+
+          <div class="mt-12">
+            <h3 class="text-xl font-bold text-slate-700 mb-4 text-center">Histamine Impact of Food Categories</h3>
+            <p class="text-slate-600 mb-6 leading-relaxed text-center max-w-3xl mx-auto">
+              This chart visualizes the general histamine potential of various food categories. Foods that are aged,
+              fermented, or leftover are typically the highest in histamine. This helps in understanding the principles
+              of the diet beyond just memorizing lists.
+            </p>
+            <div class="chart-container">
+              <canvas id="histamineChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lifestyle & Environment Section -->
+      <section id="lifestyle" class="content-section">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
+          <h2 class="text-2xl font-bold text-slate-700 mb-4">Lifestyle & Environmental Triggers</h2>
+          <p class="text-slate-600 mb-6 leading-relaxed">
+            Beyond diet, many environmental and lifestyle factors can trigger mast cells. Managing these is crucial for
+            overall stability. This section highlights key areas to focus on, providing actionable strategies to reduce
+            your exposure to common triggers and support your nervous system.
+          </p>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="bg-slate-50 p-6 rounded-lg border">
+              <h3 class="font-semibold text-lg text-slate-800 mb-2">Stress Management</h3>
+              <p class="text-slate-600">Stress is a major mast cell trigger. Practices that calm the nervous system are
+                key.</p>
+              <ul class="mt-4 list-disc list-inside text-slate-600 space-y-1">
+                <li>Mindfulness & meditation</li>
+                <li>Gentle yoga or tai chi</li>
+                <li>Deep breathing exercises</li>
+                <li>Spending time in nature</li>
+              </ul>
+            </div>
+            <div class="bg-slate-50 p-6 rounded-lg border">
+              <h3 class="font-semibold text-lg text-slate-800 mb-2">Quality Sleep</h3>
+              <p class="text-slate-600">Poor sleep increases inflammation and histamine. Prioritize sleep hygiene.</p>
+              <ul class="mt-4 list-disc list-inside text-slate-600 space-y-1">
+                <li>Consistent sleep schedule</li>
+                <li>Dark, cool, quiet room</li>
+                <li>Avoid screens before bed</li>
+                <li>Consider a HEPA air filter</li>
+              </ul>
+            </div>
+            <div class="bg-slate-50 p-6 rounded-lg border">
+              <h3 class="font-semibold text-lg text-slate-800 mb-2">Gentle Exercise</h3>
+              <p class="text-slate-600">Intense exercise can trigger mast cells. Opt for moderate, low-impact
+                activities.</p>
+              <ul class="mt-4 list-disc list-inside text-slate-600 space-y-1">
+                <li>Walking or light hiking</li>
+                <li>Swimming or water aerobics</li>
+                <li>Cycling (at a gentle pace)</li>
+                <li>Listen to your body; avoid pushing to exhaustion</li>
+              </ul>
+            </div>
+            <div class="bg-slate-50 p-6 rounded-lg border">
+              <h3 class="font-semibold text-lg text-slate-800 mb-2">Temperature Control</h3>
+              <p class="text-slate-600">Sudden temperature changes (hot or cold) can be a trigger for many.</p>
+              <ul class="mt-4 list-disc list-inside text-slate-600 space-y-1">
+                <li>Avoid overly hot showers/baths</li>
+                <li>Dress in layers to adapt easily</li>
+                <li>Be cautious with saunas or ice baths</li>
+                <li>Stay hydrated in hot weather</li>
+              </ul>
+            </div>
+            <div class="bg-slate-50 p-6 rounded-lg border">
+              <h3 class="font-semibold text-lg text-slate-800 mb-2">Chemical Exposures</h3>
+              <p class="text-slate-600">Strong fragrances and chemicals can degranulate mast cells.</p>
+              <ul class="mt-4 list-disc list-inside text-slate-600 space-y-1">
+                <li>Use fragrance-free personal care products</li>
+                <li>Choose natural cleaning supplies</li>
+                <li>Be aware of perfumes and air fresheners</li>
+                <li>Ensure good ventilation at home</li>
+              </ul>
+            </div>
+            <div class="bg-slate-50 p-6 rounded-lg border">
+              <h3 class="font-semibold text-lg text-slate-800 mb-2">Mold & Allergens</h3>
+              <p class="text-slate-600">Environmental allergens like mold, pollen, and dust are potent triggers.</p>
+              <ul class="mt-4 list-disc list-inside text-slate-600 space-y-1">
+                <li>Check home for water damage/mold</li>
+                <li>Use a HEPA air purifier</li>
+                <li>Keep windows closed during high pollen</li>
+                <li>Wash bedding frequently in hot water</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Symptom Tracker Section -->
+      <section id="tracker" class="content-section">
+        <div class="bg-white p-6 sm:p-8 rounded-xl shadow-sm">
+          <h2 class="text-2xl font-bold text-slate-700 mb-4">Session Symptom Tracker</h2>
+          <p class="text-slate-600 mb-2 leading-relaxed">
+            Tracking symptoms can help you identify personal triggers and patterns. Use this form to log your symptoms,
+            severity, and any notes about your food or environment. The chart below will visualize your severity over
+            time.
+          </p>
+          <div class="bg-amber-100 border-l-4 border-amber-500 text-amber-700 p-4 mb-6 rounded-r-lg" role="alert">
+            <p class="font-bold">Important Note</p>
+            <p>This tracker is for in-session use only. Your data will be lost when you close or refresh this page. It
+              is not saved.</p>
+          </div>
+
+          <div class="grid lg:grid-cols-5 gap-8">
+            <div class="lg:col-span-2">
+              <form id="symptomForm" class="space-y-4">
+                <div>
+                  <label for="symptomDate" class="block text-sm font-medium text-slate-700">Date</label>
+                  <input type="date" id="symptomDate"
+                    class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                </div>
+                <div>
+                  <label for="symptomSeverity" class="block text-sm font-medium text-slate-700">Overall Severity
+                    (1-10)</label>
+                  <input type="range" id="symptomSeverity" min="1" max="10" value="5"
+                    class="mt-1 block w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-teal-600">
+                  <div class="text-center text-sm text-slate-500" id="severityValue">5</div>
+                </div>
+                <div>
+                  <label for="symptomNotes" class="block text-sm font-medium text-slate-700">Notes (Food, Stress,
+                    etc.)</label>
+                  <textarea id="symptomNotes" rows="4"
+                    class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                    placeholder="e.g., Ate leftovers, stressful meeting..."></textarea>
+                </div>
+                <button type="submit"
+                  class="w-full bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">Log
+                  Entry</button>
+              </form>
+            </div>
+            <div class="lg:col-span-3">
+              <h3 class="text-xl font-bold text-slate-700 mb-4 text-center">Severity Over Time</h3>
+              <div class="chart-container h-64 md:h-80">
+                <canvas id="symptomChart"></canvas>
+              </div>
+              <div id="symptomLog" class="mt-6 max-h-48 overflow-y-auto pr-2">
+                <p class="text-center text-slate-500">Your logged entries will appear here.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+
+</html>
